@@ -1,0 +1,1161 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>Step by step guide of Automated NAT Gateway and Subnet Management for AWS–Databricks Integration</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 3px;
+	padding: 1rem;
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.column-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	padding: 0 1em;
+}
+
+.column:first-child {
+	padding-left: 0;
+}
+
+.column:last-child {
+	padding-right: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding: 0.125rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+	border-collapse: collapse;
+}
+
+table {
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-block;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	transform: scale(1.5);
+	margin-right: 0.6em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1.25em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(50, 48, 44, 1);
+}
+.highlight-gray {
+	color: rgba(115, 114, 110, 1);
+	fill: rgba(115, 114, 110, 1);
+}
+.highlight-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.highlight-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.highlight-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.highlight-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.highlight-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(205, 60, 58, 1);
+	fill: rgba(205, 60, 58, 1);
+}
+.highlight-default_background {
+	color: rgba(50, 48, 44, 1);
+}
+.highlight-gray_background {
+	background: rgba(248, 248, 247, 1);
+}
+.highlight-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.highlight-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.highlight-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.highlight-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.highlight-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.highlight-purple_background {
+	background: rgba(248, 243, 252, 1);
+}
+.highlight-pink_background {
+	background: rgba(252, 241, 246, 1);
+}
+.highlight-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(115, 114, 110, 1);
+	fill: rgba(115, 114, 110, 1);
+}
+.block-color-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.block-color-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.block-color-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.block-color-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.block-color-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(205, 60, 58, 1);
+	fill: rgba(205, 60, 58, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(248, 248, 247, 1);
+}
+.block-color-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.block-color-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.block-color-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.block-color-purple_background {
+	background: rgba(248, 243, 252, 1);
+}
+.block-color-pink_background {
+	background: rgba(252, 241, 246, 1);
+}
+.block-color-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.select-value-color-uiBlue { background-color: undefined; }
+.select-value-color-pink { background-color: rgba(225, 136, 179, 0.27); }
+.select-value-color-purple { background-color: rgba(168, 129, 197, 0.27); }
+.select-value-color-green { background-color: rgba(123, 183, 129, 0.27); }
+.select-value-color-gray { background-color: rgba(84, 72, 49, 0.15); }
+.select-value-color-translucentGray { background-color: undefined; }
+.select-value-color-orange { background-color: rgba(224, 124, 57, 0.27); }
+.select-value-color-brown { background-color: rgba(210, 162, 141, 0.35); }
+.select-value-color-red { background-color: rgba(244, 171, 159, 0.4); }
+.select-value-color-yellow { background-color: rgba(236, 191, 66, 0.39); }
+.select-value-color-blue { background-color: rgba(93, 165, 206, 0.27); }
+.select-value-color-pageGlass { background-color: undefined; }
+.select-value-color-washGlass { background-color: undefined; }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style></head><body><article id="210b2291-62ce-807a-83ce-ce41a51421ae" class="page sans"><header><h1 class="page-title">Step by step guide of Automated NAT Gateway and Subnet Management for AWS–Databricks Integration</h1><p class="page-description"></p></header><div class="page-body"><p id="210b2291-62ce-8093-9c8a-ff7e5e08e765" class="">
+</p><p id="210b2291-62ce-809f-ad42-e1303023e3e0" class="">The main objective is to reduce costs in AWS by eliminating the continuous use of NAT Gateway for environments that only need it temporarily, such as Databric-type work environments or temporary development environments.</p><p id="210b2291-62ce-80dc-971e-e01d7b2912bc" class="">The idea here is to trigger two lambda functions, one for creating NAT Gateways and handling subnets and the other to delete NAT Gateways to avoid costs.<br/>For this, the first step is to define the Policy for the Role that’s going to be attached to the Lambda Functions, then we will need to create Rules using the Event Bridge service, to trigger the lambda functions to make this process automated<br/><br/><br/><strong>Complete Flow of Events</strong></p><p id="211b2291-62ce-80a8-ada4-c0a034627d50" class=""><br/><br/></p><figure id="211b2291-62ce-80ca-9d09-f68c9fbab04d" class="image"><a href="NATGw.drawio.png"><img style="width:301px" src="NATGw.drawio.png"/></a></figure><h2 id="210b2291-62ce-8041-bbc6-f6e92f57512c" class=""><mark class="highlight-teal">A) Creation of Policy for Role</mark></h2><ol type="1" id="210b2291-62ce-806f-8fd9-de2f0b6c667b" class="numbered-list" start="1"><li>Type <strong>IAM </strong>on the search bar and go the <strong>IAM </strong>service</li></ol><figure id="210b2291-62ce-80ef-ab06-da21a127a700" class="image"><a href="image.png"><img style="width:1474.984375px" src="image.png"/></a></figure><ol type="1" id="210b2291-62ce-808f-b81c-df3996444c4c" class="numbered-list" start="2"><li>From there go to the <strong>Policies</strong> Tab</li></ol><figure id="210b2291-62ce-80ba-aa61-f368594670bc" class="image"><a href="image%201.png"><img style="width:1474.96875px" src="image%201.png"/></a></figure><ol type="1" id="210b2291-62ce-8009-9f94-d349965ec082" class="numbered-list" start="3"><li> Here you can see the policies that already exists and proceed to click the <strong>Create Policy</strong> button.</li></ol><figure id="210b2291-62ce-80fc-acb5-e43c14f9abe7" class="image"><a href="image%202.png"><img style="width:1474.96875px" src="image%202.png"/></a></figure><ol type="1" id="210b2291-62ce-80f2-a759-f7f771220f6a" class="numbered-list" start="4"><li> Go to the <strong>JSON</strong> tab.</li></ol><figure id="210b2291-62ce-80be-b02f-ee1e6e3cd35a" class="image"><a href="https://lh7-rt.googleusercontent.com/docsz/AD_4nXdRvgP4RiD7r0xKja3GEExZ8td9rJ4HhHI4ykIZuRp2gXmR4yY3AJy5ooWzGVFVh5bMeVjaeGUVVjSUCDdQdpW5uk64ULMNW-8ELbyLqK4QaVFiRXYC95b31M3vobQMxQbGRd-L?key=pqRSCbB8OiSmEjSofCFVSw"><img style="width:1440px" src="https://lh7-rt.googleusercontent.com/docsz/AD_4nXdRvgP4RiD7r0xKja3GEExZ8td9rJ4HhHI4ykIZuRp2gXmR4yY3AJy5ooWzGVFVh5bMeVjaeGUVVjSUCDdQdpW5uk64ULMNW-8ELbyLqK4QaVFiRXYC95b31M3vobQMxQbGRd-L?key=pqRSCbB8OiSmEjSofCFVSw"/></a></figure><p id="210b2291-62ce-80cc-92c0-c4ca5990abac" class=""><br/>5.  Replace the default permissions with a new one<br/></p><figure id="210b2291-62ce-80e8-84b8-ebfee302d6b2" class="image"><a href="image%203.png"><img style="width:1440px" src="image%203.png"/></a></figure><ol type="1" id="210b2291-62ce-806b-9296-d4031864d01e" class="numbered-list" start="6"><li>The new JSON contains all the required permissions for the Lambda functions to work correctly and then click on Next.</li></ol><figure id="210b2291-62ce-8012-a5b8-c4bb87058d2a" class="image"><a href="image%204.png"><img style="width:1474.96875px" src="image%204.png"/></a></figure><p id="210b2291-62ce-80d9-9eea-f33c144ba5c3" class="">JSON:</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="210b2291-62ce-80b7-af48-c332c51bf255" class="code"><code class="language-JSON">{
+	&quot;Version&quot;: &quot;2012-10-17&quot;,
+	&quot;Statement&quot;: [
+		{
+			&quot;Sid&quot;: &quot;EC2Permissions&quot;,
+			&quot;Effect&quot;: &quot;Allow&quot;,
+			&quot;Action&quot;: [
+				&quot;ec2:DescribeInstances&quot;,
+				&quot;ec2:DescribeRouteTables&quot;,
+				&quot;ec2:DescribeNatGateways&quot;,
+				&quot;ec2:CreateNatGateway&quot;,
+				&quot;ec2:DeleteNatGateway&quot;,
+				&quot;ec2:AllocateAddress&quot;,
+				&quot;ec2:ReleaseAddress&quot;,
+				&quot;ec2:AssociateAddress&quot;,
+				&quot;ec2:DisassociateAddress&quot;,
+				&quot;ec2:CreateRoute&quot;,
+				&quot;ec2:DescribeSubnets&quot;,
+				&quot;ec2:DescribeTags&quot;,
+				&quot;ec2:DescribeAddresses&quot;,
+				&quot;ec2:DescribeVpcs&quot;,
+				&quot;ec2:CreateTags&quot;,
+				&quot;ec2:ReplaceRoute&quot;
+			],
+			&quot;Resource&quot;: &quot;*&quot;
+		},
+		{
+			&quot;Sid&quot;: &quot;LambdaLogging&quot;,
+			&quot;Effect&quot;: &quot;Allow&quot;,
+			&quot;Action&quot;: [
+				&quot;logs:CreateLogGroup&quot;,
+				&quot;logs:CreateLogStream&quot;,
+				&quot;logs:PutLogEvents&quot;
+			],
+			&quot;Resource&quot;: &quot;*&quot;
+		}
+	]
+}</code></pre><ol type="1" id="210b2291-62ce-804b-a52b-ccb4df6dbc49" class="numbered-list" start="7"><li>Set a name, description for the Policy and also set a tag for better identification for the AWS administrator, the tag should be Key: Project, Value: Databricks, then proceed to create the policy.</li></ol><figure id="210b2291-62ce-80ea-9de1-dfb167ca70a4" class="image"><a href="image%205.png"><img style="width:1474.984375px" src="image%205.png"/></a></figure><h2 id="210b2291-62ce-80d1-8ad5-e3e50a876faf" class=""><mark class="highlight-teal">B) Creation of the Role for the Lambda functions</mark></h2><ol type="1" id="210b2291-62ce-803b-b28c-f5bf6f936b61" class="numbered-list" start="1"><li>Type <strong>IAM </strong>on the search bar and go the <strong>IAM </strong>service</li></ol><figure id="210b2291-62ce-809c-afed-f896a3bd3137" class="image"><a href="image.png"><img style="width:1474.984375px" src="image.png"/></a></figure><p id="210b2291-62ce-80d7-9450-eadb4e67fa5c" class="">
+</p><p id="210b2291-62ce-8043-b09a-eaef601bb0fa" class="">
+</p><ol type="1" id="210b2291-62ce-808f-a9e7-c3301535b976" class="numbered-list" start="2"><li>Go to the <strong>Roles</strong> Tab</li></ol><figure id="210b2291-62ce-80ed-b9e8-edbf6c6d3bdb" class="image"><a href="image%206.png"><img style="width:1466.96875px" src="image%206.png"/></a></figure><p id="210b2291-62ce-805d-8d4a-c6d409a5b1f0" class="">
+</p><ol type="1" id="210b2291-62ce-802b-818f-c3d2fcb90c9a" class="numbered-list" start="3"><li>Here you can see the roles that already exists and proceed to click the <strong>Create Role</strong> button.</li></ol><figure id="210b2291-62ce-80a7-9c1a-c8417c3c1e93" class="image"><a href="image%207.png"><img style="width:1466.984375px" src="image%207.png"/></a></figure><ol type="1" id="210b2291-62ce-809a-9c0b-d2ad907a4f1a" class="numbered-list" start="4"><li>Here select <strong>AWS service</strong> as the Trusted entity type and <strong>Lambda</strong> as the Use Case, then proceed to click <strong>Next</strong></li></ol><figure id="210b2291-62ce-80c1-acb5-d56e8b85d564" class="image"><a href="image%208.png"><img style="width:1466.984375px" src="image%208.png"/></a></figure><ol type="1" id="210b2291-62ce-80c8-99e2-d0d9a4598c17" class="numbered-list" start="5"><li>Here search for the <strong>Policy</strong> that was created earlier and select it and go <strong>Next</strong>, if it does not appear, you can edit the role later and add it manually.</li></ol><figure id="210b2291-62ce-8091-a1db-d177943f0908" class="image"><a href="image%209.png"><img style="width:1466.984375px" src="image%209.png"/></a></figure><ol type="1" id="210b2291-62ce-8016-9385-da9af72174df" class="numbered-list" start="6"><li><strong>Name</strong> your Role and add a brief <strong>Description</strong>, also don’t forget to add the proper <strong>tag</strong> Key: Project, Value: Databricks, then proceed to create the Role.</li></ol><figure id="210b2291-62ce-8027-9753-e9266ffe9164" class="image"><a href="image%2010.png"><img style="width:1466.96875px" src="image%2010.png"/></a></figure><p id="210b2291-62ce-8035-a1c9-da92f6529bef" class="">Now that we have the Role associated with the proper Policy, we can proceed on creating the Lambda Functions.</p><h2 id="210b2291-62ce-80ae-b45a-c145a9262116" class=""><mark class="highlight-teal">C) Creation of Lambda Functions</mark></h2><ol type="1" id="210b2291-62ce-806e-8746-c3067ee2d92f" class="numbered-list" start="1"><li>Type <strong>Lambda </strong>on the search bar and go the <strong>Lambda</strong> service</li></ol><figure id="210b2291-62ce-8002-986a-c0aef1231407" class="image"><a href="image%2011.png"><img style="width:1466.984375px" src="image%2011.png"/></a></figure><ol type="1" id="210b2291-62ce-8093-910f-d393860a7558" class="numbered-list" start="2"><li>Here you can see the Lambdas that already exists, in this case is already created the Lambdas that we need (Enabler and Disabler), just proceed on clicking the <strong>Create Function </strong>button</li></ol><figure id="210b2291-62ce-8091-a0a7-e2dd28c27d18" class="image"><a href="image%2012.png"><img style="width:1466.96875px" src="image%2012.png"/></a></figure><ol type="1" id="210b2291-62ce-8048-876f-dd02e3021ed9" class="numbered-list" start="3"><li>Here you need to specify <strong>Author from scratch</strong>, set the <strong>Function Name</strong>, select <strong>Python 3.13</strong> as <strong>Runtime</strong>, <strong>x86_64</strong> as the <strong>Architecture</strong> and <strong>most important</strong>, set the existing role that we created earlier, in this case DatabricksLambdaRole, this role have all the permissions needed for both lambdas(Enabler and Disabler) to work properly.</li></ol><figure id="210b2291-62ce-8017-a79a-eff339038c70" class="image"><a href="image%2013.png"><img style="width:1466.96875px" src="image%2013.png"/></a></figure><p id="210b2291-62ce-806a-9b11-f64acc83fc27" class="">Also add the <strong>tag</strong> Key:Project, Value: Databricks and then click the <strong>Create function</strong> button</p><figure id="210b2291-62ce-80f9-94da-e5af0801c4d4" class="image"><a href="image%2014.png"><img style="width:1466.984375px" src="image%2014.png"/></a></figure><ol type="1" id="210b2291-62ce-80b5-9707-caa9390da9c4" class="numbered-list" start="4"><li>Repeat this process for both Lambda Enabler and Disabler.<br/><br/></li></ol><h2 id="210b2291-62ce-80ca-948f-c90b649d1b9b" class=""><mark class="highlight-teal">D) Lambda Enabler and Disabler Configuration</mark></h2><p id="210b2291-62ce-8069-934f-f87ba7820531" class="">
+</p><ol type="1" id="210b2291-62ce-8092-9735-ceb86d0b4b05" class="numbered-list" start="1"><li>Click on the function you want to config, in this case the Enabler</li></ol><figure id="210b2291-62ce-800f-8f1e-fc1d955164d6" class="image"><a href="image%2015.png"><img style="width:1466.953125px" src="image%2015.png"/></a></figure><p id="210b2291-62ce-8061-8565-db1873b6879f" class="">
+</p><ol type="1" id="210b2291-62ce-8061-a0a9-c645dc9b16ac" class="numbered-list" start="2"><li>Here you can see the Lambda Console, go to the Code tab and in there you can see the default code that exist.</li></ol><figure id="210b2291-62ce-8038-b630-c7a42550aee4" class="image"><a href="image%2016.png"><img style="width:1466.953125px" src="image%2016.png"/></a></figure><p id="210b2291-62ce-80db-9367-edc92a8baa62" class=""><br/>3) Replace the code with the NAT-Enabler code:<br/><br/></p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="210b2291-62ce-8012-8370-d091a505b6c0" class="code"><code class="language-Python">import boto3
+import logging
+import time
+from botocore.config import Config
+
+# === Setup logger ===
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+# Configure retries
+AWS_RETRY_CONFIG = Config(
+    retries={&#x27;max_attempts&#x27;: 5, &#x27;mode&#x27;: &#x27;standard&#x27;}
+)
+
+def find_public_subnet(ec2_client, vpc_id):
+    &quot;&quot;&quot;Find a public subnet (with route to Internet Gateway) in the VPC&quot;&quot;&quot;
+    try:
+        # Get all route tables for the VPC
+        route_tables = ec2_client.describe_route_tables(
+            Filters=[{&#x27;Name&#x27;: &#x27;vpc-id&#x27;, &#x27;Values&#x27;: [vpc_id]}]
+        )[&#x27;RouteTables&#x27;]
+        
+        # Find subnets with route to IGW
+        public_subnets = set()
+        for rt in route_tables:
+            # Check if route table has a route to IGW
+            has_igw_route = any(
+                route.get(&#x27;DestinationCidrBlock&#x27;) == &#x27;0.0.0.0/0&#x27; and 
+                route.get(&#x27;GatewayId&#x27;, &#x27;&#x27;).startswith(&#x27;igw-&#x27;)
+                for route in rt.get(&#x27;Routes&#x27;, [])
+            )
+            
+            if has_igw_route:
+                # Get all subnets associated with this route table
+                for assoc in rt.get(&#x27;Associations&#x27;, []):
+                    if assoc.get(&#x27;SubnetId&#x27;):
+                        public_subnets.add(assoc[&#x27;SubnetId&#x27;])
+        
+        if not public_subnets:
+            raise Exception(&quot;No public subnets found (with route to Internet Gateway)&quot;)
+        
+        # Return the first available public subnet
+        return list(public_subnets)[0]
+    
+    except Exception as e:
+        logger.error(f&quot;Error finding public subnet: {str(e)}&quot;)
+        raise
+
+def get_private_subnets(ec2_client, vpc_id, exclude_subnet_ids=[]):
+    &quot;&quot;&quot;Get all private subnets in VPC excluding specified subnets&quot;&quot;&quot;
+    try:
+        all_subnets = ec2_client.describe_subnets(
+            Filters=[{&#x27;Name&#x27;: &#x27;vpc-id&#x27;, &#x27;Values&#x27;: [vpc_id]}]
+        )[&#x27;Subnets&#x27;]
+        
+        private_subnets = []
+        for subnet in all_subnets:
+            if subnet[&#x27;SubnetId&#x27;] in exclude_subnet_ids:
+                continue
+                
+            # Check if subnet has route to NAT (indicating it&#x27;s private)
+            route_tables = ec2_client.describe_route_tables(
+                Filters=[{&#x27;Name&#x27;: &#x27;association.subnet-id&#x27;, &#x27;Values&#x27;: [subnet[&#x27;SubnetId&#x27;]]}]  # Corrected line
+            )[&#x27;RouteTables&#x27;]
+            
+            is_private = True
+            for rt in route_tables:
+                for route in rt.get(&#x27;Routes&#x27;, []):
+                    if route.get(&#x27;DestinationCidrBlock&#x27;) == &#x27;0.0.0.0/0&#x27; and route.get(&#x27;GatewayId&#x27;, &#x27;&#x27;).startswith(&#x27;igw-&#x27;):
+                        is_private = False
+                        break
+                if not is_private:
+                    break  # No need to check other route tables if one is public
+            
+            if is_private:
+                private_subnets.append(subnet)
+        
+        return private_subnets
+    
+    except Exception as e:
+        logger.error(f&quot;Error getting private subnets: {str(e)}&quot;)
+        raise
+
+def update_route_table(ec2_client, route_table_id, nat_gateway_id):
+    &quot;&quot;&quot;Update a route table to point to NAT Gateway&quot;&quot;&quot;
+    try:
+        # Reemplazar la ruta existente o crearla si no existe
+        try:
+            ec2_client.replace_route(
+                RouteTableId=route_table_id,
+                DestinationCidrBlock=&#x27;0.0.0.0/0&#x27;,
+                NatGatewayId=nat_gateway_id
+            )
+            logger.info(f&quot;Replaced default route in {route_table_id} to NAT {nat_gateway_id}&quot;)
+        except ec2_client.exceptions.ClientError as e:
+            if &quot;no route with destination-cidr-block&quot; in str(e).lower():
+                # Si no existía, crear la ruta
+                ec2_client.create_route(
+                    RouteTableId=route_table_id,
+                    DestinationCidrBlock=&#x27;0.0.0.0/0&#x27;,
+                    NatGatewayId=nat_gateway_id
+                )
+                logger.info(f&quot;Created new default route in {route_table_id} to NAT {nat_gateway_id}&quot;)
+            else:
+                logger.error(f&quot;Failed to update route table {route_table_id}: {str(e)}&quot;)
+                return False
+
+        return True
+
+    except Exception as e:
+        logger.error(f&quot;Failed to update route table {route_table_id}: {str(e)}&quot;, exc_info=True)
+        return False
+
+
+def lambda_handler(event, context):
+    logger.info(&quot;NAT Gateway management Lambda triggered&quot;)
+    logger.debug(f&quot;Event: {event}&quot;)
+    
+    try:
+        # Parse event details
+        detail = event.get(&#x27;detail&#x27;, {})
+        state = detail.get(&#x27;state&#x27;)
+        instance_id = detail.get(&#x27;instance-id&#x27;)
+        region = event.get(&#x27;region&#x27;)
+        
+        # Validate required fields
+        if state != &#x27;running&#x27;:
+            logger.info(f&quot;Instance state is &#x27;{state}&#x27;, skipping NAT Gateway creation.&quot;)
+            return {&quot;status&quot;: &quot;skipped&quot;, &quot;message&quot;: f&quot;EC2 state is &#x27;{state}&#x27;&quot;}
+        
+        if not instance_id or not region:
+            logger.error(&quot;Missing instance ID or region in event.&quot;)
+            return {&quot;status&quot;: &quot;error&quot;, &quot;message&quot;: &quot;Missing instance-id or region.&quot;}
+        
+        # Initialize EC2 clients
+        ec2_client = boto3.client(&#x27;ec2&#x27;, region_name=region, config=AWS_RETRY_CONFIG)
+        ec2_resource = boto3.resource(&#x27;ec2&#x27;, region_name=region)
+        
+        # Get instance metadata
+        instance = ec2_resource.Instance(instance_id)
+        vpc_id = instance.vpc_id
+        tags = {tag[&#x27;Key&#x27;]: tag[&#x27;Value&#x27;] for tag in instance.tags or []}
+        
+        # Validate instance belongs to Databricks project
+        if tags.get(&#x27;Project&#x27;) != &#x27;Databricks&#x27;:
+            logger.info(&quot;Instance does not belong to Project=Databricks. Skipping NAT creation.&quot;)
+            return {&quot;status&quot;: &quot;skipped&quot;, &quot;message&quot;: &quot;Project tag is not Databricks.&quot;}
+        
+        # Check if NAT Gateway already exists
+        existing_nats = ec2_client.describe_nat_gateways(
+            Filters=[{&#x27;Name&#x27;: &#x27;vpc-id&#x27;, &#x27;Values&#x27;: [vpc_id]}]
+        )[&#x27;NatGateways&#x27;]
+        
+        active_nats = [n for n in existing_nats if n[&#x27;State&#x27;] in [&#x27;available&#x27;, &#x27;pending&#x27;]]
+        
+        if active_nats:
+            nat_id = active_nats[0][&#x27;NatGatewayId&#x27;]
+            logger.info(f&quot;Using existing NAT Gateway: {nat_id}&quot;)
+            public_subnet_id = active_nats[0][&#x27;SubnetId&#x27;]
+        else:
+            # Find a PUBLIC subnet for the NAT Gateway
+            public_subnet_id = find_public_subnet(ec2_client, vpc_id)
+            logger.info(f&quot;Selected public subnet for NAT Gateway: {public_subnet_id}&quot;)
+            
+            # Get or allocate Elastic IP
+            addresses = ec2_client.describe_addresses()[&#x27;Addresses&#x27;]
+            unused_eips = [eip for eip in addresses if &#x27;AssociationId&#x27; not in eip and eip.get(&#x27;Domain&#x27;) == &#x27;vpc&#x27;]
+            
+            if unused_eips:
+                allocation_id = unused_eips[0][&#x27;AllocationId&#x27;]
+                logger.info(f&quot;Reusing existing Elastic IP: {allocation_id}&quot;)
+            else:
+                if len(addresses) &gt;= 5:
+                    logger.error(&quot;Cannot create new EIP - limit reached (5 per region)&quot;)
+                    return {
+                        &quot;status&quot;: &quot;error&quot;,
+                        &quot;message&quot;: &quot;Elastic IP limit reached. Cannot create NAT Gateway.&quot;
+                    }
+                eip = ec2_client.allocate_address(Domain=&#x27;vpc&#x27;)
+                allocation_id = eip[&#x27;AllocationId&#x27;]
+                logger.info(f&quot;Allocated new Elastic IP: {allocation_id}&quot;)
+            
+            # Create NAT Gateway in the PUBLIC subnet
+            nat = ec2_client.create_nat_gateway(
+                SubnetId=public_subnet_id,
+                AllocationId=allocation_id,
+                TagSpecifications=[{
+                    &#x27;ResourceType&#x27;: &#x27;natgateway&#x27;,
+                    &#x27;Tags&#x27;: [
+                        {&#x27;Key&#x27;: &#x27;Name&#x27;, &#x27;Value&#x27;: &#x27;AutoNAT-Databricks&#x27;},
+                        {&#x27;Key&#x27;: &#x27;Project&#x27;, &#x27;Value&#x27;: &#x27;Databricks&#x27;},
+                        {&#x27;Key&#x27;: &#x27;ManagedBy&#x27;, &#x27;Value&#x27;: &#x27;Lambda&#x27;}
+                    ]
+                }]
+            )
+            nat_id = nat[&#x27;NatGateway&#x27;][&#x27;NatGatewayId&#x27;]
+            logger.info(f&quot;Creating NAT Gateway {nat_id} in public subnet {public_subnet_id}&quot;)
+            
+            # Wait for NAT Gateway to become available
+            waiter = ec2_client.get_waiter(&#x27;nat_gateway_available&#x27;)
+            logger.info(f&quot;Waiting for NAT Gateway {nat_id} to become available...&quot;)
+            waiter.wait(NatGatewayIds=[nat_id])
+            logger.info(f&quot;NAT Gateway {nat_id} is now available.&quot;)
+        
+        # Get all PRIVATE subnets with Project=Databricks tag
+        databricks_subnets = ec2_client.describe_subnets(
+            Filters=[
+                {&#x27;Name&#x27;: &#x27;vpc-id&#x27;, &#x27;Values&#x27;: [vpc_id]},
+                {&#x27;Name&#x27;: &#x27;tag:Project&#x27;, &#x27;Values&#x27;: [&#x27;Databricks&#x27;]}
+            ]
+        )[&#x27;Subnets&#x27;]
+        
+        # Filter out public subnets (including the NAT&#x27;s subnet)
+        private_subnets = get_private_subnets(ec2_client, vpc_id, exclude_subnet_ids=[public_subnet_id])
+        
+        if not private_subnets:
+            logger.warning(&quot;No private Databricks subnets found in VPC!&quot;)
+            return {
+                &quot;status&quot;: &quot;warning&quot;,
+                &quot;message&quot;: &quot;NAT created but no private Databricks subnets found&quot;,
+                &quot;nat_gateway_id&quot;: nat_id,
+                &quot;nat_subnet_id&quot;: public_subnet_id
+            }
+        
+        logger.info(f&quot;Found {len(private_subnets)} private Databricks subnets to update&quot;)
+        
+        # Get ALL route tables in the VPC
+        all_route_tables = ec2_client.describe_route_tables(
+            Filters=[{&#x27;Name&#x27;: &#x27;vpc-id&#x27;, &#x27;Values&#x27;: [vpc_id]}]
+        )[&#x27;RouteTables&#x27;]
+        
+        updated_route_tables = []
+        
+        # Process each private subnet
+        for subnet in private_subnets:
+            subnet_id = subnet[&#x27;SubnetId&#x27;]
+            logger.info(f&quot;Processing private subnet: {subnet_id}&quot;)
+            
+            # Find route tables associated with this subnet
+            route_tables = []
+            
+            # 1. Check for explicitly associated route tables
+            explicit_route_tables = [
+                rt for rt in all_route_tables
+                if any(
+                    assoc.get(&#x27;SubnetId&#x27;) == subnet_id
+                    for assoc in rt.get(&#x27;Associations&#x27;, [])
+                )
+            ]
+            
+            # 2. If no explicit association, use the main route table
+            if not explicit_route_tables:
+                main_route_table = next(
+                    (rt for rt in all_route_tables
+                     if any(assoc.get(&#x27;Main&#x27;) for assoc in rt.get(&#x27;Associations&#x27;, []))),
+                    None
+                )
+                if main_route_table:
+                    route_tables = [main_route_table]
+            else:
+                route_tables = explicit_route_tables
+            
+            if not route_tables:
+                logger.warning(f&quot;No route table found for subnet {subnet_id}&quot;)
+                continue
+            
+            # Update each relevant route table
+            for rt in route_tables:
+                rt_id = rt[&#x27;RouteTableId&#x27;]
+                if rt_id in updated_route_tables:
+                    continue
+                
+                if update_route_table(ec2_client, rt_id, nat_id):
+                    updated_route_tables.append(rt_id)
+        
+        logger.info(f&quot;Successfully updated {len(updated_route_tables)} route tables&quot;)
+        return {
+            &quot;status&quot;: &quot;success&quot;,
+            &quot;message&quot;: &quot;NAT Gateway configured and route tables updated&quot;,
+            &quot;nat_gateway_id&quot;: nat_id,
+            &quot;nat_subnet_id&quot;: public_subnet_id,
+            &quot;allocation_id&quot;: allocation_id if &#x27;allocation_id&#x27; in locals() else None,
+            &quot;updated_route_tables&quot;: updated_route_tables,
+            &quot;private_subnets_updated&quot;: [s[&#x27;SubnetId&#x27;] for s in private_subnets]
+        }
+    
+    except Exception as e:
+        logger.error(f&quot;Error in NAT Gateway management: {str(e)}&quot;, exc_info=True)
+        return {&quot;status&quot;: &quot;error&quot;, &quot;message&quot;: str(e)}
+</code></pre><p id="210b2291-62ce-802a-86da-ec0c464d291c" class=""><br/><br/><strong>Code Explanation:</strong><br/><br/></p><p id="210b2291-62ce-80de-a81a-cdc6fa955076" class="">This Lambda function is triggered when an EC2 instance transitions to the <code><strong>running</strong></code> state.</p><p id="210b2291-62ce-80c4-8229-d0e9b689094b" class="">Its purpose is to:</p><blockquote id="210b2291-62ce-80e4-974c-d1fa84e62975" class="">Automatically create a NAT Gateway in a public subnet if one doesn&#x27;t already exist for the VPC, and update the route tables of private subnets in the Databricks project to use that NAT Gateway for outbound internet access.</blockquote><hr id="210b2291-62ce-8005-bb53-d4d6fff221ce"/><h3 id="210b2291-62ce-808b-abe5-f2fdad9452fd" class="">🔧 Step-by-step behavior of <code>NAT-enabler</code></h3><hr id="210b2291-62ce-8012-a05e-dc2223a97262"/><h3 id="210b2291-62ce-80c5-803a-fefa87a326c9" class="">1. <strong>Event validation</strong></h3><ul id="210b2291-62ce-8053-82cf-f328daae77b8" class="bulleted-list"><li style="list-style-type:disc">Extracts <code>instance-id</code>, <code>state</code>, and <code>region</code> from the triggering EventBridge event.</li></ul><ul id="210b2291-62ce-8039-ac58-dfa39c559913" class="bulleted-list"><li style="list-style-type:disc"><strong>Skips execution if:</strong><ul id="210b2291-62ce-80d6-b21c-f8c03f14bf48" class="bulleted-list"><li style="list-style-type:circle">State is not <code>running</code></li></ul><ul id="210b2291-62ce-8019-92e5-c3beff597027" class="bulleted-list"><li style="list-style-type:circle"><code>instance-id</code> or <code>region</code> is missing</li></ul></li></ul><hr id="210b2291-62ce-80a1-aba7-f09e2c01396b"/><h3 id="210b2291-62ce-8007-a47f-c956f03cd1dc" class="">2. <strong>Fetch EC2 instance metadata</strong></h3><ul id="210b2291-62ce-80d0-b170-ca118444b324" class="bulleted-list"><li style="list-style-type:disc">Retrieves the instance using Boto3.</li></ul><ul id="210b2291-62ce-8005-bc36-ede2e26d8576" class="bulleted-list"><li style="list-style-type:disc">Extracts:<ul id="210b2291-62ce-80ac-99d2-ffffedd6473c" class="bulleted-list"><li style="list-style-type:circle"><code>vpc_id</code></li></ul><ul id="210b2291-62ce-80df-9f24-e2326a7b0cfd" class="bulleted-list"><li style="list-style-type:circle">Instance tags</li></ul></li></ul><ul id="210b2291-62ce-80e8-887e-fb92e0a3d719" class="bulleted-list"><li style="list-style-type:disc"><strong>Continues only if:</strong> Tag <code>Project = Databricks</code> is present.</li></ul><hr id="210b2291-62ce-80c2-b627-d4152dffce1a"/><h3 id="210b2291-62ce-80c1-9eec-f57836d3bdcc" class="">3. <strong>Check if a NAT Gateway already exists</strong></h3><ul id="210b2291-62ce-805d-9d52-c7952dbe6d68" class="bulleted-list"><li style="list-style-type:disc">Uses <code>describe_nat_gateways</code> to find existing NAT Gateways in the same VPC.</li></ul><ul id="210b2291-62ce-8071-a1c6-df24c13d1720" class="bulleted-list"><li style="list-style-type:disc">If one is <code>available</code> or <code>pending</code>, reuses it and captures its <code>SubnetId</code>.</li></ul><hr id="210b2291-62ce-80de-9934-d42df9f2496a"/><h3 id="210b2291-62ce-80e1-b6ab-eff61f9af5c9" class="">4. <strong>If not, create a new NAT Gateway</strong></h3><h3 id="210b2291-62ce-8043-a17f-ed284151453b" class="">a. <strong>Find a public subnet</strong></h3><ul id="210b2291-62ce-80ef-a185-f747f695e239" class="bulleted-list"><li style="list-style-type:disc">Inspects route tables in the VPC.</li></ul><ul id="210b2291-62ce-8028-806c-f3681564c27b" class="bulleted-list"><li style="list-style-type:disc">Looks for any with a <code>0.0.0.0/0</code> route via an <code>Internet Gateway (igw-*)</code>.</li></ul><ul id="210b2291-62ce-8097-8107-e770e2e007c0" class="bulleted-list"><li style="list-style-type:disc">Returns a subnet associated with that route table.</li></ul><h3 id="210b2291-62ce-8066-b5cd-cdabbf2539ca" class="">b. <strong>Get or allocate an Elastic IP</strong></h3><ul id="210b2291-62ce-8033-844d-f6cc721c397f" class="bulleted-list"><li style="list-style-type:disc">Tries to find an <strong>unused Elastic IP</strong>.</li></ul><ul id="210b2291-62ce-80cd-8a88-c15d208fd231" class="bulleted-list"><li style="list-style-type:disc">If none is found and the account is under the 5-IP limit, allocates a new EIP.</li></ul><ul id="210b2291-62ce-8040-bfbe-ebcbae1be079" class="bulleted-list"><li style="list-style-type:disc"><strong>Fails gracefully</strong> if EIP limit is reached.</li></ul><h3 id="210b2291-62ce-8075-9819-eb27511b9304" class="">c. <strong>Create the NAT Gateway</strong></h3><ul id="210b2291-62ce-80c6-a5b7-c84aaba33505" class="bulleted-list"><li style="list-style-type:disc">Deploys it in the selected public subnet.</li></ul><ul id="210b2291-62ce-8085-b2fe-c471a87df431" class="bulleted-list"><li style="list-style-type:disc">Attaches the EIP.</li></ul><ul id="210b2291-62ce-8081-a46e-fa5305e80d50" class="bulleted-list"><li style="list-style-type:disc">Tags it with:<ul id="210b2291-62ce-80b5-a5e0-d29226723658" class="bulleted-list"><li style="list-style-type:circle"><code>Name = AutoNAT-Databricks</code></li></ul><ul id="210b2291-62ce-80af-bcfd-eaf27e8293fa" class="bulleted-list"><li style="list-style-type:circle"><code>Project = Databricks</code></li></ul><ul id="210b2291-62ce-8058-b49f-d9d5669aaddf" class="bulleted-list"><li style="list-style-type:circle"><code>ManagedBy = Lambda</code></li></ul></li></ul><h3 id="210b2291-62ce-8017-b6a9-efa854ef2f03" class="">d. <strong>Wait for NAT to become available</strong></h3><ul id="210b2291-62ce-80b8-ae05-f3dc4ab2c5a0" class="bulleted-list"><li style="list-style-type:disc">Uses a waiter (<code>nat_gateway_available</code>) to pause execution until the gateway is ready.</li></ul><hr id="210b2291-62ce-8026-96c7-d3e8eed39f45"/><h3 id="210b2291-62ce-803b-8671-eb2f648aa78d" class="">5. <strong>Find private Databricks subnets</strong></h3><ul id="210b2291-62ce-8051-8efd-c4e312897d9a" class="bulleted-list"><li style="list-style-type:disc">Queries all subnets in the VPC with tag <code>Project = Databricks</code>.</li></ul><ul id="210b2291-62ce-8093-a7f7-d5d93c88b72d" class="bulleted-list"><li style="list-style-type:disc">Excludes the subnet used by the NAT Gateway.</li></ul><ul id="210b2291-62ce-8014-b7c3-c3573dddc6d7" class="bulleted-list"><li style="list-style-type:disc">Identifies <strong>private subnets</strong> (i.e., no route to Internet Gateway).</li></ul><hr id="210b2291-62ce-8009-a4a7-e48e889c666b"/><h3 id="210b2291-62ce-80ba-b8d8-de85c514d6d4" class="">6. <strong>Update route tables</strong></h3><p id="210b2291-62ce-8089-b679-db7870c95d80" class="">For each identified <strong>private subnet</strong>:</p><h3 id="210b2291-62ce-80ae-9fb6-e15c6ea0655b" class="">a. Determine route table:</h3><ul id="210b2291-62ce-8094-b3d7-c93c74bf9e2d" class="bulleted-list"><li style="list-style-type:disc">If explicitly associated → use it.</li></ul><ul id="210b2291-62ce-8053-84c9-c30130b9346d" class="bulleted-list"><li style="list-style-type:disc">If not → use the <strong>main</strong> route table.</li></ul><h3 id="210b2291-62ce-80cf-8a31-efde22de6a04" class="">b. Create or replace route to <code>0.0.0.0/0</code>:</h3><ul id="210b2291-62ce-805b-87c8-fb2e2106ac91" class="bulleted-list"><li style="list-style-type:disc">Points to the newly created or reused NAT Gateway.</li></ul><hr id="210b2291-62ce-805c-a8a7-f552629925b7"/><h3 id="210b2291-62ce-80e0-b8ad-ddc7ee7965d4" class="">7. <strong>Return status</strong></h3><p id="210b2291-62ce-80ad-a07e-c9bb43a98ac8" class="">Returns:</p><ul id="210b2291-62ce-808e-aae3-cb322eaf51cf" class="bulleted-list"><li style="list-style-type:disc">NAT Gateway ID</li></ul><ul id="210b2291-62ce-80d1-b4d7-d75ae70d55b3" class="bulleted-list"><li style="list-style-type:disc">Subnet used</li></ul><ul id="210b2291-62ce-8074-9eea-dfc581ab3cd7" class="bulleted-list"><li style="list-style-type:disc">EIP allocation ID (if applicable)</li></ul><ul id="210b2291-62ce-806b-8065-f37722332790" class="bulleted-list"><li style="list-style-type:disc">List of route tables updated</li></ul><ul id="210b2291-62ce-80f9-9449-d418f2652a1b" class="bulleted-list"><li style="list-style-type:disc">List of private subnets affected</li></ul><p id="210b2291-62ce-80e4-8471-df369a0586d8" class="">
+</p><ol type="1" id="210b2291-62ce-80fa-a869-d08b54eb74d9" class="numbered-list" start="4"><li>Once you have replaced the code, click on <strong>Deploy</strong> to keep the last version of the code up and ready to use, if this is not done, the code executed will be the one that’s set by default.</li></ol><figure id="210b2291-62ce-8010-bea1-c03ec62ebce8" class="image"><a href="2a50cdb7-3172-42b9-93f4-8c70f5c97eeb.png"><img style="width:737.7128953771289px" src="2a50cdb7-3172-42b9-93f4-8c70f5c97eeb.png"/></a></figure><ol type="1" id="210b2291-62ce-800b-b961-d4ce800ca3d5" class="numbered-list" start="5"><li>Next, go to the <strong>Configuratio</strong>n Tab and click on <strong>Edit</strong></li></ol><figure id="210b2291-62ce-8049-9edb-e654d6561377" class="image"><a href="image%2017.png"><img style="width:1466.984375px" src="image%2017.png"/></a></figure><ol type="1" id="210b2291-62ce-8045-9fea-fef0688c8430" class="numbered-list" start="6"><li>Here you can add a brief <strong>description</strong> of what the Function does also we need to set a <strong>Timeout</strong> for the code to run, since the code takes a little bit of time will waiting for the NAT to be available, just set it to 10 min, finally click on <strong>Save.</strong></li></ol><figure id="210b2291-62ce-80e1-a9a0-f360ef904ff6" class="image"><a href="image%2018.png"><img style="width:1466.984375px" src="image%2018.png"/></a></figure><ol type="1" id="210b2291-62ce-80f6-8a4a-fb4d0a84e290" class="numbered-list" start="7"><li>Optional- In the <strong>Test</strong> tab, you can configure <strong>Test Events</strong> to test the implementation, you need to specify an Event using a JSON.<br/>Select the <br/><strong>Create New Event</strong> option, add an <strong>event name</strong> and select it as <strong>Private</strong></li></ol><figure id="210b2291-62ce-8033-b607-c69aa9471a78" class="image"><a href="image%2019.png"><img style="width:1466.984375px" src="image%2019.png"/></a></figure><p id="210b2291-62ce-8073-968b-dd222d22dfeb" class="">
+</p><p id="210b2291-62ce-804a-b63a-ce425c7cfde7" class="">7.a .Modify the JSON with the following code:<br/><br/></p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="210b2291-62ce-808c-a070-da1cd8129ec6" class="code"><code class="language-JSON">{
+  &quot;version&quot;: &quot;0&quot;,
+  &quot;id&quot;: &quot;test-id-enabler&quot;,
+  &quot;detail-type&quot;: &quot;EC2 Instance State-change Notification&quot;,
+  &quot;source&quot;: &quot;aws.ec2&quot;,
+  &quot;account&quot;: &quot;123456789012&quot;,
+  &quot;time&quot;: &quot;2025-06-04T15:10:00Z&quot;,
+  &quot;region&quot;: &quot;us-east-1&quot;,
+  &quot;resources&quot;: [&quot;arn:aws:ec2:us-east-1:123456789012:instance/i-08fec1c787214d60f&quot;],
+  &quot;detail&quot;: {
+    &quot;instance-id&quot;: &quot;i-08fec1c787214d60f&quot;,
+    &quot;state&quot;: &quot;running&quot;
+  }
+}
+</code></pre><p id="210b2291-62ce-8025-b13d-e2003da4aa91" class="">In here you need to be careful to replace the <strong>EC2</strong> <strong>instance id</strong> of an <strong>EC2 Databricks </strong>instance that’s up and have the <strong>state</strong> <strong>running</strong>, this instance should be created when someone on the Databricks’s side is attempting to create a new Cluster, for that purpose you need to go to the EC2 Service and go to the <strong>Instances</strong> tab in order too see the instances that are available.<br/>The <br/><strong>instance id</strong> is highlighted below</p><p id="210b2291-62ce-8046-84fb-e6c350657910" class=""><br/><br/></p><figure id="210b2291-62ce-80b7-a20d-e1e1c4d34e54" class="image"><a href="image%2020.png"><img style="width:1466.953125px" src="image%2020.png"/></a></figure><figure id="210b2291-62ce-80c4-a7e2-d2ab1dff3db1"><div class="source"><a href="https://www.notion.soundefined"></a></div></figure><p id="210b2291-62ce-8094-97f7-e3a80c97239a" class="">7.b .To get the instance id type EC2 on the search bar and select the EC2 service</p><figure id="210b2291-62ce-800a-b01a-fce3aa68b32c" class="image"><a href="image%2021.png"><img style="width:1466.984375px" src="image%2021.png"/></a></figure><p id="210b2291-62ce-80cd-9884-f9e690492a94" class="">7.c . From there, go to the <strong>Instances</strong> Tab and click on it.</p><figure id="210b2291-62ce-80a3-bdf5-d566df3617fa" class="image"><a href="image%2022.png"><img style="width:1466.953125px" src="image%2022.png"/></a></figure><p id="210b2291-62ce-8085-98a7-fbff7c6ea011" class="">7.d . Here you can find the EC2 instance id that belongs to the Databricks Cluster that’s being created. In this example we don’t have any of that but is just for understanding purposes. Once you found the correct id just update the JSON for the test event and you are good to go.</p><figure id="210b2291-62ce-80e5-af4f-f2d11c9c8c45" class="image"><a href="image%2023.png"><img style="width:1466.90625px" src="image%2023.png"/></a></figure><p id="210b2291-62ce-80e7-a929-c2ab1865972f" class="">
+</p><p id="210b2291-62ce-8087-8f30-fe2bb576b5ea" class="">7.e . Lastly click on <strong>Save </strong>to save your test event and proceed to test it, by clicking the <strong>Test</strong> button</p><p id="210b2291-62ce-803b-993e-e63c7da3df46" class="">
+</p><figure id="210b2291-62ce-805f-a8b8-e028c4a5ebff" class="image"><a href="image%2024.png"><img style="width:1467px" src="image%2024.png"/></a></figure><p id="210b2291-62ce-80d7-b4e8-e5ca63cec7a7" class="">After clicking the Test button , go to the <strong>Code</strong> Tab again and check for the outputs being printed there.</p><p id="210b2291-62ce-8091-aea4-c128a9061c81" class="">For testing the Disabler just follow the 6 steps(from a to e) but use this JSON instead:</p><hr id="210b2291-62ce-80bc-ab48-f980829a04b3"/><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="210b2291-62ce-80a4-8737-ca4687900c4a" class="code"><code class="language-JSON">
+
+{
+  &quot;version&quot;: &quot;0&quot;,
+  &quot;id&quot;: &quot;test-id-disabler&quot;,
+  &quot;detail-type&quot;: &quot;EC2 Instance State-change Notification&quot;,
+  &quot;source&quot;: &quot;aws.ec2&quot;,
+  &quot;account&quot;: &quot;123456789012&quot;,
+  &quot;time&quot;: &quot;2025-06-04T15:05:00Z&quot;,
+  &quot;region&quot;: &quot;us-east-1&quot;,
+  &quot;resources&quot;: [&quot;arn:aws:ec2:us-east-1:123456789012:instance/i-08fec1c787214d60f&quot;],
+  &quot;detail&quot;: {
+    &quot;instance-id&quot;: &quot;i-08fec1c787214d60f&quot;,
+    &quot;state&quot;: [&quot;stopping&quot;, &quot;stopped&quot;,&quot;shutting-down&quot;]
+  }
+}
+</code></pre><p id="210b2291-62ce-8008-93f5-f14e21a75c4d" class="">only the states considered will be different( stopping, stopped, shutting-down).<br/><br/>To Create the Lambda Function for the NAT Disabler, follow the same steps, only the code changes, use this code instead:<br/></p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="210b2291-62ce-80e4-9023-c2fdf371a55a" class="code"><code class="language-Python">import boto3
+import logging
+import time
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+def lambda_handler(event, context):
+    instance_id = event.get(&#x27;detail&#x27;, {}).get(&#x27;instance-id&#x27;)
+    region = event.get(&#x27;region&#x27;)
+    logger.info(&quot;Event: &quot; + str(event))
+
+    if not instance_id or not region:
+        logger.error(&quot;Missing &#x27;instance-id&#x27; or &#x27;region&#x27; in event.&quot;)
+        return {&quot;status&quot;: &quot;error&quot;, &quot;message&quot;: &quot;Missing &#x27;instance-id&#x27; or &#x27;region&#x27;.&quot;}
+
+    ec2 = boto3.resource(&#x27;ec2&#x27;, region_name=region)
+    ec2_client = boto3.client(&#x27;ec2&#x27;, region_name=region)
+
+    try:
+        instance = ec2.Instance(instance_id)
+        vpc_id = instance.vpc_id
+        tags = {tag[&#x27;Key&#x27;]: tag[&#x27;Value&#x27;] for tag in instance.tags or []}
+        project_tag = tags.get(&#x27;Project&#x27;, None)
+
+        if not project_tag:
+            logger.warning(&quot;Missing Project tag. Skipping.&quot;)
+            return {&quot;status&quot;: &quot;skipped&quot;, &quot;message&quot;: &quot;Missing Project tag.&quot;}
+
+        # Check for other running instances with the same Project tag
+        reservations = ec2_client.describe_instances(
+            Filters=[
+                {&#x27;Name&#x27;: &#x27;tag:Project&#x27;, &#x27;Values&#x27;: [project_tag]},
+                {&#x27;Name&#x27;: &#x27;instance-state-name&#x27;, &#x27;Values&#x27;: [&#x27;running&#x27;]}
+            ]
+        )[&#x27;Reservations&#x27;]
+
+        still_running = any(r[&#x27;Instances&#x27;] for r in reservations)
+        if still_running:
+            logger.info(&quot;Other instances still running. Skipping deletion.&quot;)
+            return {&quot;status&quot;: &quot;active&quot;, &quot;message&quot;: &quot;Other EC2s are still running.&quot;}
+
+        # Delete NAT Gateways
+        nat_gateways = ec2_client.describe_nat_gateways(
+            Filter=[{&#x27;Name&#x27;: &#x27;vpc-id&#x27;, &#x27;Values&#x27;: [vpc_id]}]
+        )[&#x27;NatGateways&#x27;]
+
+        deleted_count = 0
+        for nat in nat_gateways:
+            if nat[&#x27;State&#x27;] in [&#x27;available&#x27;, &#x27;pending&#x27;]:
+                nat_id = nat[&#x27;NatGatewayId&#x27;]
+                
+                # Safely get the EIP Allocation ID
+                eip_alloc_id = None
+                if nat.get(&#x27;NatGatewayAddresses&#x27;) and len(nat[&#x27;NatGatewayAddresses&#x27;]) &gt; 0:
+                    eip_alloc_id = nat[&#x27;NatGatewayAddresses&#x27;][0].get(&#x27;AllocationId&#x27;)
+                
+                # Delete the NAT Gateway
+                ec2_client.delete_nat_gateway(NatGatewayId=nat_id)
+                logger.info(f&quot;NAT Gateway {nat_id} deleted&quot;)
+                deleted_count += 1
+                
+                # Wait extra time for AWS to complete the deletion
+                time.sleep(60)
+                
+                # Release EIP if it exists and is valid
+                if eip_alloc_id:
+                    logger.info(f&quot;Attempting to release EIP: {eip_alloc_id} in region: {region}&quot;)
+                    
+                    try:
+                        # Check if the EIP exists before releasing
+                        eip_info = ec2_client.describe_addresses(AllocationIds=[eip_alloc_id])
+                        if eip_info[&#x27;Addresses&#x27;]:
+                            ec2_client.release_address(AllocationId=eip_alloc_id)
+                            logger.info(f&quot;EIP {eip_alloc_id} released&quot;)
+                        else:
+                            logger.warning(f&quot;EIP {eip_alloc_id} not found, may be already released&quot;)
+                    except ec2_client.exceptions.ClientError as e:
+                        if &#x27;InvalidAllocationID.NotFound&#x27; in str(e):
+                            logger.warning(f&quot;EIP {eip_alloc_id} not found, may be already released&quot;)
+                        else:
+                            logger.error(f&quot;Error releasing EIP {eip_alloc_id}: {str(e)}&quot;)
+                    except Exception as e:
+                        logger.error(f&quot;Unexpected error releasing EIP {eip_alloc_id}: {str(e)}&quot;)
+                else:
+                    logger.warning(f&quot;No EIP found for NAT Gateway {nat_id}&quot;)
+
+        return {
+            &quot;status&quot;: &quot;success&quot;,
+            &quot;message&quot;: f&quot;Deleted {deleted_count} NAT Gateway(s)&quot;,
+            &quot;deleted_nat_gateways&quot;: deleted_count
+        }
+
+    except Exception as e:
+        logger.error(f&quot;Error in disabler: {str(e)}&quot;, exc_info=True)
+        return {&quot;status&quot;: &quot;error&quot;, &quot;message&quot;: str(e)}
+</code></pre><p id="210b2291-62ce-80a1-949f-fb0cbdbd3dff" class="">
+</p><p id="210b2291-62ce-805a-ac77-cc24040087d9" class=""><strong>Code Explanation:</strong></p><p id="210b2291-62ce-8035-9631-e05c116af68d" class="">This Lambda function is triggered when an EC2 instance transitions to a <strong>non-running</strong> state (usually <code>stopped</code> or <code>terminated</code> or <code>shutting-down</code> ).</p><p id="210b2291-62ce-80e7-9f0b-df2811f6ae43" class="">Its goal:</p><blockquote id="210b2291-62ce-8046-bda3-da48e35303c9" class="">If there are no other running instances in the same Databricks project, delete the NAT Gateway and release the EIP associated with it to save costs.</blockquote><hr id="210b2291-62ce-80af-a4c4-e4f48a443b6f"/><h3 id="210b2291-62ce-803e-a967-ce4214d8cef4" class="">🔧 Step-by-step behavior of <code>NAT-disabler</code></h3><hr id="210b2291-62ce-8084-b7a9-ed07da96a887"/><h3 id="210b2291-62ce-8044-a84e-dff6573718dc" class="">1. <strong>Event validation</strong></h3><ul id="210b2291-62ce-80d5-876f-d21c0374e579" class="bulleted-list"><li style="list-style-type:disc">Extracts <code>instance-id</code> and <code>region</code> from the event.</li></ul><ul id="210b2291-62ce-80b3-b2b1-c214315adf48" class="bulleted-list"><li style="list-style-type:disc">Skips execution and returns an error if either is missing.</li></ul><hr id="210b2291-62ce-8097-9025-fa9f3e58bb79"/><h3 id="210b2291-62ce-804d-b9a0-c64f158a3b7c" class="">2. <strong>Get instance metadata</strong></h3><ul id="210b2291-62ce-802f-ac6b-cff340242ca1" class="bulleted-list"><li style="list-style-type:disc">Retrieves the EC2 instance by ID.</li></ul><ul id="210b2291-62ce-80d2-b17b-e64af5603e65" class="bulleted-list"><li style="list-style-type:disc">Gets its <code>vpc_id</code> and tags.</li></ul><ul id="210b2291-62ce-8010-9ac5-c417a5aa2f3e" class="bulleted-list"><li style="list-style-type:disc">Extracts the <code>Project</code> tag.</li></ul><p id="210b2291-62ce-801a-9b54-de1c0f92653c" class=""><strong>Skips further actions if:</strong></p><ul id="210b2291-62ce-80d5-969c-fd97ceede015" class="bulleted-list"><li style="list-style-type:disc">No <code>Project</code> tag is found.</li></ul><hr id="210b2291-62ce-808c-91c9-c66075289aa1"/><h3 id="210b2291-62ce-808c-92f0-ef5ff1a86843" class="">3. <strong>Check if other instances are still running in the project</strong></h3><ul id="210b2291-62ce-8001-a178-c2440017fbe3" class="bulleted-list"><li style="list-style-type:disc">Searches for <strong>other running EC2s</strong> with the same <code>Project</code> tag.</li></ul><ul id="210b2291-62ce-80b2-aa4c-d4e9a44bc8bc" class="bulleted-list"><li style="list-style-type:disc">If at least one is found:<ul id="210b2291-62ce-80aa-b1be-f296a84e7d90" class="bulleted-list"><li style="list-style-type:circle">Logs and exits without deleting anything.</li></ul></li></ul><hr id="210b2291-62ce-809f-b587-eaeb7c1b811f"/><h3 id="210b2291-62ce-80dc-8b6c-e35ce6c425ff" class="">4. <strong>Delete NAT Gateways</strong></h3><ul id="210b2291-62ce-80ad-817b-d58964b600b9" class="bulleted-list"><li style="list-style-type:disc">Lists all NAT Gateways in the VPC.</li></ul><ul id="210b2291-62ce-80bd-9316-fd847a16db33" class="bulleted-list"><li style="list-style-type:disc">For those in <code>available</code> or <code>pending</code> state:<ul id="210b2291-62ce-802e-9139-e607c372db9e" class="bulleted-list"><li style="list-style-type:circle">Extracts NAT Gateway ID</li></ul><ul id="210b2291-62ce-8035-82a6-e79509d84e88" class="bulleted-list"><li style="list-style-type:circle">Deletes the NAT Gateway</li></ul><ul id="210b2291-62ce-80bd-a514-e7015f970db3" class="bulleted-list"><li style="list-style-type:circle">Stores the associated EIP Allocation ID (if available)</li></ul></li></ul><hr id="210b2291-62ce-80d4-90ed-d9e7bc622405"/><h3 id="210b2291-62ce-80b4-a0e5-de5a8118889c" class="">5. <strong>Wait before EIP release</strong></h3><ul id="210b2291-62ce-80ef-a9b7-d1c4584b4e83" class="bulleted-list"><li style="list-style-type:disc">Waits 60 seconds to allow AWS to process the NAT deletion before trying to release the EIP.</li></ul><hr id="210b2291-62ce-8077-8ed7-e52c48baac65"/><h3 id="210b2291-62ce-80b0-a8d1-d9e8c1bf80eb" class="">6. <strong>Release the Elastic IP</strong></h3><ul id="210b2291-62ce-8077-8a22-d158eda3ee44" class="bulleted-list"><li style="list-style-type:disc">If EIP Allocation ID is known:<ul id="210b2291-62ce-8085-8ef6-d97306538967" class="bulleted-list"><li style="list-style-type:circle">Tries to release the address using <code>release_address</code>.</li></ul><ul id="210b2291-62ce-8063-b740-edfc80e01e8f" class="bulleted-list"><li style="list-style-type:circle">If already deleted, logs a warning.</li></ul><ul id="210b2291-62ce-804c-80a6-ecf623b6c502" class="bulleted-list"><li style="list-style-type:circle">Catches and logs any exceptions (e.g., invalid ID).</li></ul></li></ul><hr id="210b2291-62ce-8040-94d6-ecea55818b02"/><h3 id="210b2291-62ce-803d-bafa-fedbe7ef1805" class="">7. <strong>Return final status</strong></h3><p id="210b2291-62ce-8044-bd29-ea45bd30dc9d" class="">Returns:</p><ul id="210b2291-62ce-80fe-a26e-f0bc7e284b73" class="bulleted-list"><li style="list-style-type:disc">Status: success, error, skipped, etc.</li></ul><ul id="210b2291-62ce-805b-97f0-fb04ce89847f" class="bulleted-list"><li style="list-style-type:disc">Message indicating how many NATs were deleted</li></ul><p id="210b2291-62ce-8076-8695-fa0fe6553ec0" class=""><br/>The next step is to create the <br/><strong>Event Bridge Rule</strong> in order to have this done <strong>automatically</strong>, which is the main objective of this implementation.<br/><br/><br/></p><h2 id="210b2291-62ce-80c8-830b-c160313ee28a" class=""><mark class="highlight-teal">E) Event Bridge Rules for NAT Enabler and NAT disabler triggering mechanisms.</mark></h2><ol type="1" id="210b2291-62ce-8031-a624-cf0d1d501c25" class="numbered-list" start="1"><li>Type Event on the Search bar and go to the service Amazon Event Bridge.</li></ol><figure id="210b2291-62ce-804e-ba48-de1106689f67" class="image"><a href="image%2025.png"><img style="width:1466.984375px" src="image%2025.png"/></a></figure><ol type="1" id="210b2291-62ce-8089-8598-d13a457888dd" class="numbered-list" start="2"><li>From here you need to go to the Rules Tab in the Buses Section.</li></ol><figure id="210b2291-62ce-8085-bb8c-fa930d877f98" class="image"><a href="image%2026.png"><img style="width:1466.96875px" src="image%2026.png"/></a></figure><ol type="1" id="210b2291-62ce-8009-90f0-ed502e9e030c" class="numbered-list" start="3"><li>In here you’ll be able to see the existing rules( in this case the Rules for the Lambdas Functions for Enabling and Disabling NATs), go ahead a click on the <strong>Create Rule</strong> Option</li></ol><ol type="1" id="210b2291-62ce-8049-9ed4-f081bec4bdcc" class="numbered-list" start="4"><li>Set a <strong>name</strong> and a brief <strong>description</strong>(ex: triggers lambda when an ec2 instance is running), leave the <strong>Event bus</strong> as <strong>default</strong> and select the <strong>Rule with an event </strong>pattern option, click on <strong>Next</strong>.</li></ol><figure id="210b2291-62ce-801b-b5b4-d6b827578864" class="image"><a href="image%2027.png"><img style="width:1466.96875px" src="image%2027.png"/></a></figure><ol type="1" id="210b2291-62ce-8070-9066-cadec31e47dc" class="numbered-list" start="5"><li>Select the Custom pattern(JSON editor) and paste the JSON  that’s below and then click on <strong>Next</strong>:</li></ol><p id="210b2291-62ce-80c2-8dfd-cd166f0a49e8" class="">
+</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="210b2291-62ce-8087-8839-e81a3eaa295a" class="code"><code class="language-JSON">{
+  &quot;source&quot;: [&quot;aws.ec2&quot;],
+  &quot;detail-type&quot;: [&quot;EC2 Instance State-change Notification&quot;],
+  &quot;detail&quot;: {
+    &quot;state&quot;: [&quot;running&quot;]
+  }
+}</code></pre><figure id="210b2291-62ce-809d-b4d0-f9d1943dd25f" class="image"><a href="image%2028.png"><img style="width:1466.96875px" src="image%2028.png"/></a></figure><ol type="1" id="210b2291-62ce-804d-ad2c-db07a6b8c719" class="numbered-list" start="6"><li>Select the <strong>target type</strong> as <strong>AWS service</strong>, search in the <strong>Select a target </strong>for the <strong>Lambda function</strong> option, select <strong>Target in this account</strong> in the <strong>Target Location</strong> option, select the <strong>NATenabler function</strong> on the <strong>Function</strong> option, select <strong>Use Execution role(recommended)</strong> in the <strong>Permissions</strong> option, select <strong>Create a new role for this specific resource</strong> for the Execution Role option, you can specify a Role Name or just keep as default, additional settings are not neccesary to configure in this case, just click on <strong>Next</strong></li></ol><p id="210b2291-62ce-80cb-bcd7-e83e9b210860" class="">
+</p><figure id="210b2291-62ce-80e5-83dd-c462a5ad5dc0" class="image"><a href="image%2029.png"><img style="width:1466.953125px" src="image%2029.png"/></a></figure><ol type="1" id="210b2291-62ce-8019-a8dc-f3ed868f6e22" class="numbered-list" start="7"><li>Add the <strong>Tag</strong> Key:Project ,Value:Databricks and click on <strong>Next</strong></li></ol><figure id="210b2291-62ce-80d7-b2b4-c5a2f87e9ba6" class="image"><a href="image%2030.png"><img style="width:1466.953125px" src="image%2030.png"/></a></figure><ol type="1" id="210b2291-62ce-808f-a1b4-c2b436a9785b" class="numbered-list" start="8"><li>Do a quick review and just click on <strong>Create Rule</strong></li></ol><figure id="210b2291-62ce-8049-9cc3-e3dcca99d7cc" class="image"><a href="image%2031.png"><img style="width:1466.984375px" src="image%2031.png"/></a></figure><p id="210b2291-62ce-80f5-8c27-f24a619b2578" class="">Repeat all this steps for the Disabler but just use the following JSON for the Event Pattern:<br/><br/></p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="210b2291-62ce-80ed-81e1-c181379f4b26" class="code"><code class="language-JSON">{
+  &quot;source&quot;: [&quot;aws.ec2&quot;],
+  &quot;detail-type&quot;: [&quot;EC2 Instance State-change Notification&quot;],
+  &quot;detail&quot;: {
+    &quot;state&quot;: [&quot;stopping&quot;, &quot;stopped&quot;, &quot;shutting-down&quot;]
+  }
+}</code></pre><figure id="210b2291-62ce-80eb-bca1-e71fc78d5ecc"><div class="source"><a href="https://www.notion.soundefined"></a></div></figure><ol type="1" id="210b2291-62ce-801f-9635-ec85a1db18e9" class="numbered-list" start="9"><li>Make sure that the rules are <mark class="highlight-teal"><strong>Enabled</strong></mark> to proceed on attaching to the Lambda Functions.</li></ol><figure id="210b2291-62ce-80f3-8d08-e617a84fdd51" class="image"><a href="image%2032.png"><img style="width:1466.953125px" src="image%2032.png"/></a></figure><h2 id="210b2291-62ce-80f7-a5b1-f2860876a5c1" class=""><mark class="highlight-teal">F) Adding triggers to the Lambda functions</mark></h2><ol type="1" id="210b2291-62ce-80fb-84cc-c9f9606c2e2a" class="numbered-list" start="1"><li>Go back to the Lambda function and click on the Add trigger button</li></ol><figure id="210b2291-62ce-8012-99b3-e9a80fa4fdaf" class="image"><a href="image%2033.png"><img style="width:1466.9375px" src="image%2033.png"/></a></figure><ol type="1" id="210b2291-62ce-8039-acad-d1b70fe9a1b8" class="numbered-list" start="2"><li>Search for <strong>EventBridge</strong> option in the <strong>Trigger Configuration</strong> and then Select <strong>Existing Rules</strong> and select the <strong>rule</strong> we created earlier for Enabler or Disabler(if you are in the Lambda Disabler function) and next click on <strong>Add</strong></li></ol><figure id="210b2291-62ce-803d-a459-cfbfded0b765" class="image"><a href="image%2034.png"><img style="width:1466.96875px" src="image%2034.png"/></a></figure><ol type="1" id="210b2291-62ce-8050-94d1-c2acdf9c8445" class="numbered-list" start="3"><li> Now you can see that the trigger has been added to the Lambda function and is ready to be triggered when an EC2 instance is launched and in the running state.</li></ol><figure id="210b2291-62ce-80c6-8db6-c06ec189268a" class="image"><a href="image%2035.png"><img style="width:1466.96875px" src="image%2035.png"/></a></figure><p id="210b2291-62ce-8082-87b4-f10cbcb39e2d" class=""><br/>Repeat the same steps for the <br/><strong>disabler lambda function,</strong>it shoud be triggered when an EC2 instance changes to the stopped, stopping or shutting-down state.<br/><br/>With this, the automation is finished, just be sure that the rules are in a <br/><mark class="highlight-teal">Enabled </mark>State.</p><p id="210b2291-62ce-801b-80f8-dc356de7d3d1" class="">
+</p></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>
