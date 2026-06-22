@@ -10,9 +10,4 @@ if repo_path not in sys.path:
 
 SOLUTION_NAME = "azure_devops"
 
-AZURE_DEVOPS_CLIENT_ID_KEY = "client-id-devops"
-AZURE_DEVOPS_CLIENT_SECRET_KEY = "client-secret-devops"
-AZURE_DEVOPS_CONNECTION = "azure_devops_stoicfinch"
-AZURE_DEVOPS_HOST = "https://adb-1819581696362973.13.azuredatabricks.net/"
-AZURE_DEVOPS_ORG = "StoicFinch"
-AZURE_DEVOPS_PROJECTS = "ALL"
+

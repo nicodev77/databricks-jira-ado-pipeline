@@ -14,7 +14,13 @@ resources:
         dependencies:
           - azure-keyvault==4.2.0
 
-      configuration:                                                  
+      configuration:
+        AZURE_DEVOPS_CLIENT_ID_KEY = "client-id-devops"
+        AZURE_DEVOPS_CLIENT_SECRET_KEY = "client-secret-devops"
+        AZURE_DEVOPS_CONNECTION = "azure_devops_company"
+        AZURE_DEVOPS_HOST = "https://adb-123123123123.13.azuredatabricks.net/"
+        AZURE_DEVOPS_ORG = "Company"
+        AZURE_DEVOPS_PROJECTS = "ALL"                                                  
         DEFAULT_BRONZE_ADO_SCHEMA: "${var.schema_prefix}${var.bronze_ado_schema}"
 
       libraries:

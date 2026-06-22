@@ -21,12 +21,6 @@ from pyspark import pipelines as dp
 from pyspark.sql.datasource import DataSource, SimpleDataSourceStreamReader
 from pyspark.sql.functions import current_timestamp
 from pyspark.sql.types import StringType, StructField, StructType
-from solution_code import (AZURE_DEVOPS_CLIENT_ID_KEY,
-                           AZURE_DEVOPS_CLIENT_SECRET_KEY,
-                           AZURE_DEVOPS_CONNECTION,
-                           AZURE_DEVOPS_HOST,
-                           AZURE_DEVOPS_ORG,
-                           AZURE_DEVOPS_PROJECTS)
 from typing import Any, Dict, Iterator, List, Tuple
 from utils.secrets import retrieve_secrets
 
