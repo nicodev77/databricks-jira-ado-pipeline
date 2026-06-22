@@ -1,0 +1,29 @@
+resources:
+  pipelines:
+    client_dashboard_pipeline:
+      name: "client Dashboard Pipeline"
+      catalog: ${var.default_catalog_name}
+      schema: "${var.schema_prefix}${var.gold_client_schema}"
+      photon: false
+      continuous: false
+      serverless: false
+      channel: "PREVIEW"
+      development: false
+      root_path: ${workspace.file_path}/solutions/dashboard
+
+      configuration:
+        DEFAULT_SILVER_ADO_SCHEMA: ${resources.pipelines.azure_devops_user_stories_pipeline.schema}
+        DEFAULT_SILVER_client_SCHEMA: ${resources.pipelines.jira_issues_pipeline.schema}
+
+      libraries:
+        - file:
+            path: ../client_user_story_mapping.py
+        - file:
+            path: ../client_releases.py
+
+      clusters:
+        - ${var.pipeline_data_extraction_small_cluster}
+
+      permissions:
+        - service_principal_name: ${var.etl_sp_id}
+          level: CAN_RUN

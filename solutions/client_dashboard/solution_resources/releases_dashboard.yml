@@ -1,0 +1,11 @@
+targets:
+  development:
+    resources:
+      dashboards:
+        releases_dashboard:
+          display_name: "Releases Dashboard"
+          file_path: ../solution_dashboards/lvdash.json
+          warehouse_id: ${var.warehouse_id}
+          embed_credentials: true
+          dataset_catalog: ${var.default_catalog_name}
+          dataset_schema: "${var.schema_prefix}${var.gold_schema}"

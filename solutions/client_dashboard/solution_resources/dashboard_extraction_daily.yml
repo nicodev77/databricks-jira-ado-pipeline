@@ -1,0 +1,46 @@
+resources:
+  jobs:
+    dashboard_daily:
+      name: "Dashboard Pipeline"
+
+      schedule:
+        quartz_cron_expression: "0 0 9,14 ? * MON-FRI"
+        timezone_id: ${var.timezone}
+
+      run_as:
+        service_principal_name: ${var.etl_sp_id}
+
+      tasks:
+        - task_key: DASHBOARD_PIPELINE
+          pipeline_task:
+            pipeline_id: ${resources.pipelines._dashboard_pipeline.id}
+
+      queue:
+        enabled: true
+
+      notification_settings:
+        no_alert_for_skipped_runs: true
+        no_alert_for_canceled_runs: true
+
+      email_notifications:
+        on_failure:
+          - ${var.default_notification_destination}
+
+      tags:
+        solution: "Dashboard"
+
+targets:
+  development:
+    resources:
+      jobs:
+        dashboard_daily:
+          tasks:
+            - task_key: _DASHBOARD_PIPELINE
+              pipeline_task:
+                pipeline_id: ${resources.pipelines._dashboard_pipeline.id}
+
+            - task_key: REFRESH__DASHBOARD
+              depends_on:
+                - task_key: _DASHBOARD_PIPELINE
+              dashboard_task:
+                dashboard_id: ${resources.dashboards._releases_dashboard.id}

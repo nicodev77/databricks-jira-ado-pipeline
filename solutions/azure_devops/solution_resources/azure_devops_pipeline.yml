@@ -1,0 +1,31 @@
+resources:
+  pipelines:
+    azure_devops_user_stories_pipeline:
+      name: "Company - Azure DevOps - User Stories"
+      catalog: ${var.default_catalog_name}                            
+      schema: "${var.schema_prefix}${var.silver_ado_schema}"
+      photon: false
+      continuous: false
+      serverless: false
+      channel: "PREVIEW"
+      development: false
+      root_path: ${workspace.file_path}/solutions/azure_devops
+      environment:
+        dependencies:
+          - azure-keyvault==4.2.0
+
+      configuration:                                                  
+        DEFAULT_BRONZE_ADO_SCHEMA: "${var.schema_prefix}${var.bronze_ado_schema}"
+
+      libraries:
+        - file:
+            path: ../azure_devops_ingestion_bronze.py
+        - file:
+            path: ../azure_devops_transformations_silver.py
+
+      clusters:
+        - ${var.pipeline_data_extraction_small_cluster}
+
+      permissions:
+        - service_principal_name: ${var.etl_sp_id}
+          level: CAN_RUN

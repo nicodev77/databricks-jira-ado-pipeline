@@ -1,0 +1,32 @@
+resources:
+  jobs:
+    azure_devops_user_stories_daily:
+      name: "Azure DevOps User Stories Daily"
+
+      schedule:
+        quartz_cron_expression: "0 0 8,13 ? * MON-FRI"
+        timezone_id: ${var.timezone}
+
+      run_as:
+        service_principal_name: ${var.etl_sp_id}
+
+      tasks:
+        - task_key: AZURE_DEVOPS_USER_STORIES_PIPELINE
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.azure_devops_user_stories_pipeline.id}
+
+      queue:
+        enabled: true
+
+
+      notification_settings:
+        no_alert_for_skipped_runs: true
+        no_alert_for_canceled_runs: true
+
+      email_notifications:
+        on_failure:
+          - ${var.default_notification_destination}
+
+
+      tags:
+        solution: "Azure DevOps"

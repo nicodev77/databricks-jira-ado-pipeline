@@ -1,0 +1,30 @@
+resources:
+  jobs:
+    jira_issues_daily:
+      name: "Client JIRA Issues Daily"
+
+      schedule:
+        quartz_cron_expression: "0 0 8,13 ? * MON-FRI"
+        timezone_id: ${var.timezone}
+
+      run_as:
+        service_principal_name: ${var.etl_sp_id}
+
+      tasks:
+        - task_key: JIRA_ISSUES_PIPELINE
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.jira_issues_pipeline.id}
+
+      queue:
+        enabled: true
+
+      notification_settings:
+        no_alert_for_skipped_runs: true
+        no_alert_for_canceled_runs: true
+
+      email_notifications:
+        on_failure:
+          - ${var.default_notification_destination}
+
+      tags:
+        solution: "Client JIRA"

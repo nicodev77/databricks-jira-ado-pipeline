@@ -1,0 +1,40 @@
+resources:
+  pipelines:
+    jira_issues_pipeline:
+      name: "JIRA Issues Pipeline"
+      catalog: ${var.default_catalog_name}                              
+      schema: "${var.schema_prefix}${var.silver_client_schema}"
+      photon: false
+      continuous: false
+      serverless: false
+      channel: "PREVIEW"
+      development: false
+      root_path: ${workspace.file_path}/solutions/jira
+
+      tags:
+        solution: "Client JIRA"
+
+      environment:
+        dependencies:
+          - azure-keyvault==4.2.0
+          - requests
+
+      configuration:
+        JIRA_USERNAME_SECRET_NAME: "your-jira-username-secret"
+        JIRA_API_TOKEN_SECRET_NAME: "your-jira-password-secret"
+        JIRA_DOMAIN: "your-company.atlassian.net"
+        JIRA_PROJECT_NAME: "Your Project Name"
+        DEFAULT_BRONZE_CLIENT_SCHEMA: "${var.schema_prefix}${var.bronze_client_schema}"
+
+      libraries:
+        - file:
+            path: ../jira_client_ingestion_bronze.py
+        - file:
+            path: ../jira_client_transformations_silver.py
+
+      clusters:
+        - ${var.pipeline_data_extraction_small_cluster}
+
+      permissions:
+        - service_principal_name: ${var.etl_sp_id}
+          level: CAN_RUN

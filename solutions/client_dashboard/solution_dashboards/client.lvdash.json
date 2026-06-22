@@ -1,0 +1,1154 @@
+{
+  "datasets": [
+    {
+      "name": "226b4e58",
+      "displayName": "releases",
+      "queryLines": [
+        "SELECT \r\n",
+        "    release_name,\r\n",
+        "    REGEXP_EXTRACT(release_name, '^([A-Za-z&]+)', 1) AS release_type,\r\n",
+        "    story_point_total,\r\n",
+        "    amount_of_work_items,\r\n",
+        "    missing_story_points,\r\n",
+        "    last_update\r\n",
+        "FROM releases\r\n",
+        "ORDER BY release_name"
+      ],
+      "catalog": "enterprise_local_dev",
+      "schema": "gold_client"
+    },
+    {
+      "name": "ab1e95b6",
+      "displayName": "releases_progress",
+      "queryLines": [
+        "SELECT \r\n",
+        "    release_name,\r\n",
+        "    REGEXP_EXTRACT(release_name, '^([A-Za-z&]+)', 1) AS release_type,\r\n",
+        "    CASE state\r\n",
+        "        WHEN 'unstarted'         THEN 'Not Started'\r\n",
+        "        WHEN 'in_progress'       THEN 'In Progress'\r\n",
+        "        WHEN 'blocked'           THEN 'Blocked'\r\n",
+        "        WHEN 'pending_review'    THEN 'Pending Review'\r\n",
+        "        WHEN 'merged_internally' THEN 'Merged Internally'\r\n",
+        "        WHEN 'merged_to_client'  THEN 'Merged to Client'\r\n",
+        "        WHEN 'user_testing'      THEN 'User Testing'\r\n",
+        "        WHEN 'done'              THEN 'Done'\r\n",
+        "        WHEN 'removed'           THEN 'Removed'\r\n",
+        "        ELSE state\r\n",
+        "    END AS state,\r\n",
+        "    count\r\n",
+        "FROM (\r\n",
+        "    SELECT release_name, 'unstarted' AS state, unstarted AS count FROM releases\r\n",
+        "    UNION ALL SELECT release_name, 'in_progress', in_progress FROM releases\r\n",
+        "    UNION ALL SELECT release_name, 'blocked', blocked FROM releases\r\n",
+        "    UNION ALL SELECT release_name, 'pending_review', pending_review FROM releases\r\n",
+        "    UNION ALL SELECT release_name, 'merged_internally', merged_internally FROM releases\r\n",
+        "    UNION ALL SELECT release_name, 'merged_to_client', merged_to_client FROM releases\r\n",
+        "    UNION ALL SELECT release_name, 'user_testing', user_testing FROM releases\r\n",
+        "    UNION ALL SELECT release_name, 'done', done FROM releases\r\n",
+        "    UNION ALL SELECT release_name, 'removed', removed FROM releases\r\n",
+        ")\r\n",
+        "ORDER BY release_name"
+      ],
+      "catalog": "enterprise_local_dev",
+      "schema": "gold_client"
+    },
+    {
+      "name": "51785077",
+      "displayName": "mapped_user_stories",
+      "queryLines": [
+        "SELECT\r\n",
+        "    jira_id,\r\n",
+        "    jira_name,\r\n",
+        "    COALESCE(ado_status, jira_status) AS status,\r\n",
+        "    jira_assignee,\r\n",
+        "    release_name,\r\n",
+        "    REGEXP_EXTRACT(release_name, '^([A-Za-z&]+)', 1) AS release_type\r\n",
+        "FROM mapped_user_stories\r\n",
+        "CROSS JOIN LATERAL (SELECT explode(jira_fix_versions) AS release_name)\r\n",
+        "ORDER BY release_name, jira_id"
+      ],
+      "catalog": "enterprise_local_dev",
+      "schema": "gold_client"
+    },
+    {
+      "name": "47ca56b5",
+      "displayName": "releases_velocity",
+      "queryLines": [
+        "SELECT\r\n",
+        "    release_name,\r\n",
+        "    story_point_total AS velocity,\r\n",
+        "    amount_of_work_items,\r\n",
+        "    missing_story_points,\r\n",
+        "    CASE\r\n",
+        "        WHEN missing_story_points > 0 THEN 'Unreliable'\r\n",
+        "        ELSE 'Reliable'\r\n",
+        "    END AS reliability\r\n",
+        "FROM releases\r\n",
+        "ORDER BY release_name"
+      ],
+      "catalog": "enterprise_local_dev",
+      "schema": "gold_client"
+    },
+    {
+      "name": "d1372dbb",
+      "displayName": "releases_counters",
+      "queryLines": [
+        "SELECT\r\n",
+        "    release_name,\r\n",
+        "    REGEXP_EXTRACT(release_name, '^([A-Za-z&]+)', 1) AS release_type,\r\n",
+        "    total_work,\r\n",
+        "    done,\r\n",
+        "    removed,\r\n",
+        "    (total_work - done - removed) AS outstanding\r\n",
+        "FROM releases\r\n",
+        "ORDER BY release_name"
+      ],
+      "catalog": "enterprise_local_dev",
+      "schema": "gold_client"
+    },
+    {
+      "name": "17b40ef6",
+      "displayName": "load_distribution",
+      "queryLines": [
+        "SELECT \r\n",
+        "    REGEXP_EXTRACT(release_name, '^([A-Za-z&]+)', 1) AS release_type,\r\n",
+        "    SUM(story_point_total) AS total_story_points,\r\n",
+        "    COUNT(*) AS total_releases,\r\n",
+        "    SUM(missing_story_points) AS total_missing\r\n",
+        "FROM releases\r\n",
+        "GROUP BY release_type\r\n",
+        "ORDER BY total_story_points DESC"
+      ],
+      "catalog": "enterprise_local_dev",
+      "schema": "gold_client"
+    },
+    {
+      "name": "bba46b9e",
+      "displayName": "velocity_reliable",
+      "queryLines": [
+        "SELECT\r\n",
+        "    release_name,\r\n",
+        "    REGEXP_EXTRACT(release_name, '^([A-Za-z&]+)', 1) AS release_type,\r\n",
+        "    CASE \r\n",
+        "        WHEN CONTAINS(release_name, '-') \r\n",
+        "            THEN SPLIT(release_name, '-')[1]\r\n",
+        "        ELSE release_name\r\n",
+        "    END AS version,\r\n",
+        "    CASE \r\n",
+        "        WHEN missing_story_points = 0 AND story_point_total IS NOT NULL \r\n",
+        "            THEN story_point_total\r\n",
+        "        ELSE missing_story_points\r\n",
+        "    END AS velocity,\r\n",
+        "    missing_story_points,\r\n",
+        "    CASE \r\n",
+        "        WHEN missing_story_points = 0 AND story_point_total IS NOT NULL \r\n",
+        "            THEN 'Reliable'\r\n",
+        "        ELSE 'Has Nulls'\r\n",
+        "    END AS status,\r\n",
+        "    CASE\r\n",
+        "        WHEN CONTAINS(release_name, '-')\r\n",
+        "        THEN LPAD(CAST(SPLIT(SPLIT(release_name, '-')[1], '\\\\.')[0] AS STRING), 5, '0') || '.' ||\r\n",
+        "             LPAD(CAST(SPLIT(SPLIT(release_name, '-')[1], '\\\\.')[1] AS STRING), 5, '0') || '.' ||\r\n",
+        "             LPAD(CAST(SPLIT(SPLIT(release_name, '-')[1], '\\\\.')[2] AS STRING), 5, '0')\r\n",
+        "        ELSE '00000.00000.00000'\r\n",
+        "    END AS sort_key\r\n",
+        "FROM releases\r\n",
+        "ORDER BY\r\n",
+        "    REGEXP_EXTRACT(release_name, '^([A-Za-z&]+)', 1),\r\n",
+        "    CASE WHEN CONTAINS(release_name, '-') THEN CAST(SPLIT(SPLIT(release_name, '-')[1], '\\\\.')[0] AS INT) ELSE NULL END,\r\n",
+        "    CASE WHEN CONTAINS(release_name, '-') THEN CAST(SPLIT(SPLIT(release_name, '-')[1], '\\\\.')[1] AS INT) ELSE NULL END,\r\n",
+        "    CASE WHEN CONTAINS(release_name, '-') THEN CAST(SPLIT(SPLIT(release_name, '-')[1], '\\\\.')[2] AS INT) ELSE NULL END,\r\n",
+        "    release_name"
+      ],
+      "catalog": "enterprise_local_dev",
+      "schema": "gold_client"
+    },
+    {
+      "name": "e20fdd31",
+      "displayName": "velocity_nulls",
+      "queryLines": [
+        "SELECT\r\n",
+        "    release_name,\r\n",
+        "    REGEXP_EXTRACT(release_name, '^([A-Za-z&]+)', 1) AS release_type,\r\n",
+        "    amount_of_work_items,\r\n",
+        "    missing_story_points,\r\n",
+        "    ROUND(missing_story_points / amount_of_work_items * 100, 1) AS missing_pct\r\n",
+        "FROM releases\r\n",
+        "WHERE missing_story_points > 0\r\n",
+        "ORDER BY missing_story_points DESC"
+      ],
+      "catalog": "enterprise_local_dev",
+      "schema": "gold_client"
+    },
+    {
+      "name": "0f067c33",
+      "displayName": "velocity_detail",
+      "queryLines": [
+        "SELECT\r\n",
+        "    release_name,\r\n",
+        "    REGEXP_EXTRACT(release_name, '^([A-Za-z&]+)', 1) AS release_type,\r\n",
+        "    story_point_total AS velocity,\r\n",
+        "    amount_of_work_items,\r\n",
+        "    missing_story_points,\r\n",
+        "    ROUND(missing_story_points / amount_of_work_items * 100, 1) AS missing_pct,\r\n",
+        "    CASE \r\n",
+        "        WHEN missing_story_points = 0 AND story_point_total IS NOT NULL \r\n",
+        "            THEN 'Reliable'\r\n",
+        "        ELSE 'Has Nulls'\r\n",
+        "    END AS status,\r\n",
+        "    CASE\r\n",
+        "        WHEN CONTAINS(release_name, '-')\r\n",
+        "        THEN LPAD(CAST(SPLIT(SPLIT(release_name, '-')[1], '\\\\.')[0] AS STRING), 5, '0') || '.' ||\r\n",
+        "             LPAD(CAST(SPLIT(SPLIT(release_name, '-')[1], '\\\\.')[1] AS STRING), 5, '0') || '.' ||\r\n",
+        "             LPAD(CAST(SPLIT(SPLIT(release_name, '-')[1], '\\\\.')[2] AS STRING), 5, '0')\r\n",
+        "        ELSE '00000.00000.00000'\r\n",
+        "    END AS sort_key\r\n",
+        "FROM releases\r\n",
+        "ORDER BY\r\n",
+        "    REGEXP_EXTRACT(release_name, '^([A-Za-z&]+)', 1),\r\n",
+        "    CASE WHEN CONTAINS(release_name, '-') THEN CAST(SPLIT(SPLIT(release_name, '-')[1], '\\\\.')[0] AS INT) ELSE NULL END,\r\n",
+        "    CASE WHEN CONTAINS(release_name, '-') THEN CAST(SPLIT(SPLIT(release_name, '-')[1], '\\\\.')[1] AS INT) ELSE NULL END,\r\n",
+        "    CASE WHEN CONTAINS(release_name, '-') THEN CAST(SPLIT(SPLIT(release_name, '-')[1], '\\\\.')[2] AS INT) ELSE NULL END,\r\n",
+        "    release_name"
+      ],
+      "catalog": "enterprise_local_dev",
+      "schema": "gold_client"
+    }
+  ],
+  "pages": [
+    {
+      "name": "b50e3fe5",
+      "displayName": "Per Release",
+      "layout": [
+        {
+          "widget": {
+            "name": "filter-release",
+            "queries": [
+              {
+                "name": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12a15c66a15eaa3d3c35ee7688d21_release_name",
+                "query": {
+                  "datasetName": "226b4e58",
+                  "fields": [
+                    {
+                      "name": "release_name",
+                      "expression": "`release_name`"
+                    },
+                    {
+                      "name": "release_name_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12a160dfe1586948e426d4b41da70_release_name",
+                "query": {
+                  "datasetName": "ab1e95b6",
+                  "fields": [
+                    {
+                      "name": "release_name",
+                      "expression": "`release_name`"
+                    },
+                    {
+                      "name": "release_name_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12a163f2019a3bf3f0570c3b75496_release_name",
+                "query": {
+                  "datasetName": "47ca56b5",
+                  "fields": [
+                    {
+                      "name": "release_name",
+                      "expression": "`release_name`"
+                    },
+                    {
+                      "name": "release_name_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12a1b6a8b1716baaf1a20ca5f712d_release_name",
+                "query": {
+                  "datasetName": "d1372dbb",
+                  "fields": [
+                    {
+                      "name": "release_name",
+                      "expression": "`release_name`"
+                    },
+                    {
+                      "name": "release_name_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12a16241713abbe7a56e2870bda92_release_name",
+                "query": {
+                  "datasetName": "51785077",
+                  "fields": [
+                    {
+                      "name": "release_name",
+                      "expression": "`release_name`"
+                    },
+                    {
+                      "name": "release_name_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Filter By Release"
+              },
+              "selection": {
+                "defaultSelection": {
+                  "values": {
+                    "dataType": "STRING",
+                    "values": [
+                      {
+                        "value": "LakehouseETL-1.28.0"
+                      }
+                    ]
+                  }
+                }
+              },
+              "disallowAll": false,
+              "widgetType": "filter-single-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "release_name",
+                    "queryName": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12a15c66a15eaa3d3c35ee7688d21_release_name"
+                  },
+                  {
+                    "fieldName": "release_name",
+                    "queryName": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12a160dfe1586948e426d4b41da70_release_name"
+                  },
+                  {
+                    "fieldName": "release_name",
+                    "queryName": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12a163f2019a3bf3f0570c3b75496_release_name"
+                  },
+                  {
+                    "fieldName": "release_name",
+                    "queryName": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12a1b6a8b1716baaf1a20ca5f712d_release_name"
+                  },
+                  {
+                    "fieldName": "release_name",
+                    "queryName": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12a16241713abbe7a56e2870bda92_release_name"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 3,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "state-distribution",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ab1e95b6",
+                  "fields": [
+                    {
+                      "name": "sum(count)",
+                      "expression": "SUM(`count`)"
+                    },
+                    {
+                      "name": "state",
+                      "expression": "`state`"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`release_name` IN (`release_name`) OR TRUE"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "State Distribution"
+              },
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "sum(count)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "state",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "done",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 3
+                        }
+                      },
+                      {
+                        "value": "unstarted",
+                        "color": {
+                          "themeColorType": "canvasBackgroundColor"
+                        }
+                      },
+                      {
+                        "value": "in_progress",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 1
+                        }
+                      },
+                      {
+                        "value": "merged_to_client",
+                        "color": "#7FAB40"
+                      },
+                      {
+                        "value": "pending_review",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 5
+                        }
+                      },
+                      {
+                        "value": "In Progress",
+                        "color": "#4EE4E7"
+                      },
+                      {
+                        "value": "Done",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 3
+                        }
+                      },
+                      {
+                        "value": "Removed",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 4
+                        }
+                      },
+                      {
+                        "value": "Merged Internally",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 8
+                        }
+                      },
+                      {
+                        "value": "Pending Review",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 2
+                        }
+                      }
+                    ]
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 4,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "b2c75daf",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "226b4e58",
+                  "fields": [
+                    {
+                      "name": "sum(story_point_total)",
+                      "expression": "SUM(`story_point_total`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`release_name` IN (`release_name`) OR TRUE"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Story Points",
+                "showTitle": true
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(story_point_total)",
+                  "displayName": "Story Points"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "user-stories-delivered",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "226b4e58",
+                  "fields": [
+                    {
+                      "name": "sum(amount_of_work_items)",
+                      "expression": "SUM(`amount_of_work_items`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`release_name` IN (`release_name`) OR TRUE"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "User  Stories to be Delivered"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(amount_of_work_items)"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 7,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "delivered-user-stories",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "d1372dbb",
+                  "fields": [
+                    {
+                      "name": "sum(done)",
+                      "expression": "SUM(`done`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`release_name` IN (`release_name`) OR TRUE"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Delivered User Stories"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(done)"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 10,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "user-stories-outstanding",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "d1372dbb",
+                  "fields": [
+                    {
+                      "name": "sum(outstanding)",
+                      "expression": "SUM(`outstanding`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`release_name` IN (`release_name`) OR TRUE"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "User Stories Outstanding"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(outstanding)"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 10,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "user-stories1",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "51785077",
+                  "fields": [
+                    {
+                      "name": "jira_id",
+                      "expression": "`jira_id`"
+                    },
+                    {
+                      "name": "jira_name",
+                      "expression": "`jira_name`"
+                    },
+                    {
+                      "name": "jira_assignee",
+                      "expression": "`jira_assignee`"
+                    },
+                    {
+                      "name": "status",
+                      "expression": "`status`"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`release_name` IN (`release_name`) OR TRUE"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "User Stories"
+              },
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "jira_id"
+                  },
+                  {
+                    "fieldName": "jira_name"
+                  },
+                  {
+                    "fieldName": "jira_assignee"
+                  },
+                  {
+                    "fieldName": "status"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 1,
+            "width": 8,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "filter1",
+            "queries": [
+              {
+                "name": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12a15c66a15eaa3d3c35ee7688d21_release_type",
+                "query": {
+                  "datasetName": "226b4e58",
+                  "fields": [
+                    {
+                      "name": "release_type",
+                      "expression": "`release_type`"
+                    },
+                    {
+                      "name": "release_type_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12a160dfe1586948e426d4b41da70_release_type",
+                "query": {
+                  "datasetName": "ab1e95b6",
+                  "fields": [
+                    {
+                      "name": "release_type",
+                      "expression": "`release_type`"
+                    },
+                    {
+                      "name": "release_type_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12a16241713abbe7a56e2870bda92_release_type",
+                "query": {
+                  "datasetName": "51785077",
+                  "fields": [
+                    {
+                      "name": "release_type",
+                      "expression": "`release_type`"
+                    },
+                    {
+                      "name": "release_type_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12a1b6a8b1716baaf1a20ca5f712d_release_type",
+                "query": {
+                  "datasetName": "d1372dbb",
+                  "fields": [
+                    {
+                      "name": "release_type",
+                      "expression": "`release_type`"
+                    },
+                    {
+                      "name": "release_type_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Filter By Release Type"
+              },
+              "widgetType": "filter-single-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "release_type",
+                    "queryName": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12a15c66a15eaa3d3c35ee7688d21_release_type"
+                  },
+                  {
+                    "fieldName": "release_type",
+                    "queryName": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12a160dfe1586948e426d4b41da70_release_type"
+                  },
+                  {
+                    "fieldName": "release_type",
+                    "queryName": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12a16241713abbe7a56e2870bda92_release_type"
+                  },
+                  {
+                    "fieldName": "release_type",
+                    "queryName": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12a1b6a8b1716baaf1a20ca5f712d_release_type"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 0,
+            "width": 4,
+            "height": 1
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "7c3fd196",
+      "displayName": "Velocity",
+      "layout": [
+        {
+          "widget": {
+            "name": "velocity-per-release",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "bba46b9e",
+                  "fields": [
+                    {
+                      "name": "status",
+                      "expression": "`status`"
+                    },
+                    {
+                      "name": "sum(missing_story_points)",
+                      "expression": "SUM(`missing_story_points`)"
+                    },
+                    {
+                      "name": "version",
+                      "expression": "`version`"
+                    },
+                    {
+                      "name": "sum(velocity)",
+                      "expression": "SUM(`velocity`)"
+                    },
+                    {
+                      "name": "countdistinct(sort_key)",
+                      "expression": "COUNT(DISTINCT `sort_key`)"
+                    }
+                  ],
+                  "cubeGroupingSets": {
+                    "sets": [
+                      {
+                        "fieldNames": [
+                          "status"
+                        ]
+                      },
+                      {
+                        "fieldNames": [
+                          "version"
+                        ]
+                      }
+                    ]
+                  },
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "ASC",
+                      "expression": "COUNT(DISTINCT `sort_key`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Velocity per Release"
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "version",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "measure",
+                      "measure": {
+                        "fieldName": "countdistinct(sort_key)"
+                      }
+                    }
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(velocity)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "status",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "Reliable",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 3
+                        }
+                      },
+                      {
+                        "value": "Has Nulls",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 4
+                        }
+                      }
+                    ]
+                  }
+                },
+                "extra": [
+                  {
+                    "fieldName": "sum(missing_story_points)"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 10,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "filter-by-release-type",
+            "queries": [
+              {
+                "name": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12c65cb371eb6a31e2c254c699734_release_type",
+                "query": {
+                  "datasetName": "bba46b9e",
+                  "fields": [
+                    {
+                      "name": "release_type",
+                      "expression": "`release_type`"
+                    },
+                    {
+                      "name": "release_type_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12c65dd9518b6b55a0ba5ce4563fa_release_type",
+                "query": {
+                  "datasetName": "e20fdd31",
+                  "fields": [
+                    {
+                      "name": "release_type",
+                      "expression": "`release_type`"
+                    },
+                    {
+                      "name": "release_type_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12c69162d1ac5b5ad91be891a7a97_release_type",
+                "query": {
+                  "datasetName": "0f067c33",
+                  "fields": [
+                    {
+                      "name": "release_type",
+                      "expression": "`release_type`"
+                    },
+                    {
+                      "name": "release_type_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Filter by Release Type"
+              },
+              "widgetType": "filter-single-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "release_type",
+                    "queryName": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12c65cb371eb6a31e2c254c699734_release_type"
+                  },
+                  {
+                    "fieldName": "release_type",
+                    "queryName": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12c65dd9518b6b55a0ba5ce4563fa_release_type"
+                  },
+                  {
+                    "fieldName": "release_type",
+                    "queryName": "dashboards/01f12a158d5f1ba383cfdb2d58bf2701/datasets/01f12c69162d1ac5b5ad91be891a7a97_release_type"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 4,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "releases-missing-story-points",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "0f067c33",
+                  "fields": [
+                    {
+                      "name": "release_name",
+                      "expression": "`release_name`"
+                    },
+                    {
+                      "name": "velocity",
+                      "expression": "`velocity`"
+                    },
+                    {
+                      "name": "amount_of_work_items",
+                      "expression": "`amount_of_work_items`"
+                    },
+                    {
+                      "name": "missing_story_points",
+                      "expression": "`missing_story_points`"
+                    },
+                    {
+                      "name": "missing_pct",
+                      "expression": "`missing_pct`"
+                    },
+                    {
+                      "name": "status",
+                      "expression": "`status`"
+                    },
+                    {
+                      "name": "release_type",
+                      "expression": "`release_type`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Velocity Detail"
+              },
+              "headerHeight": 30,
+              "displayRowNumbers": true,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "release_name"
+                  },
+                  {
+                    "fieldName": "velocity"
+                  },
+                  {
+                    "fieldName": "amount_of_work_items"
+                  },
+                  {
+                    "fieldName": "missing_story_points"
+                  },
+                  {
+                    "fieldName": "missing_pct"
+                  },
+                  {
+                    "fieldName": "status"
+                  },
+                  {
+                    "fieldName": "release_type"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 6,
+            "height": 11
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}
